@@ -4,22 +4,51 @@ output:
   flexdashboard::flex_dashboard:
     orientation: columns
     vertical_layout: fill
+    horizontal_layout: fill
+    social: menu
+    theme: united
+runtime: shiny
 ---
 
 ```{r setup, include=FALSE}
 library(flexdashboard)
+library(tidyverse)
+library(plotly)
+library(shiny)
 ```
 
-Column {data-width=650}
+Overview
+========
+
+Sidebar Title {.sidebar}
+------------------------
+
+
+
+
+Final
+======================
+
+
+Column {data-width=550}
 -----------------------------------------------------------------------
+
+Check out this plot I made.
 
 ### Chart A
 
 ```{r}
+plot1 <- mtcars %>% 
+  ggplot(aes(wt, mpg, col=as_factor(cyl))) +
+  geom_point() +
+  facet_grid(~cyl)
 
+plot1
+
+renderPlotly(plot1)
 ```
 
-Column {data-width=350}
+Column {data-width=450}
 -----------------------------------------------------------------------
 
 ### Chart B
@@ -34,3 +63,59 @@ Column {data-width=350}
 
 ```
 
+Draft 1
+======================
+
+Column {data-width=550}
+-----------------------------------------------------------------------
+
+### Chart A
+
+```{r}
+
+```
+
+Column {data-width=450}
+-----------------------------------------------------------------------
+
+### Chart B
+
+```{r}
+
+```
+
+### Chart C
+
+```{r}
+
+```
+
+
+Draft 2
+======================
+
+Column {data-width=550}
+-----------------------------------------------------------------------
+
+### Chart A
+
+```{r}
+
+```
+
+- reactable for interactive table
+
+Column {data-width=450}
+-----------------------------------------------------------------------
+
+### Chart B
+
+```{r}
+
+```
+
+### Chart C
+
+```{r}
+
+```
