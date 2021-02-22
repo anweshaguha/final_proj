@@ -1,0 +1,118 @@
+---
+title: "Final Project Draft"
+author: "Anwesha Guha"
+date: "2/21/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(fivethirtyeight)
+library(fivethirtyeightdata)
+
+all_college <- college_all_ages
+grad <- college_grad_students
+recent_grad <- college_recent_grads
+
+hate_crimes <- hate_crimes
+
+```
+
+
+
+## Plot 1
+```{r}
+recent_grad %>% 
+  ggplot(aes(sharewomen, median)) +
+  geom_point(aes(color = major_category), alpha = 0.7) +
+  facet_wrap(~major_category) +
+  theme_minimal() +
+  scale_color_viridis_d(option = "E") +
+  theme(legend.position = "none") +
+  scale_x_continuous(labels = scales::percent) +
+  scale_y_continuous(labels = scales::dollar) +
+  labs(x = "Share of Women",
+       y = "Median Income",
+       title = "Representation and Pay for Women Across Majors")
+
+# maybe include vertical line for average share of women, horizontal line for average income
+```
+
+
+
+## Plot 2
+```{r}
+recent_grad$employ_total <- recent_grad$employed_fulltime + recent_grad$employed_parttime + recent_grad$unemployed
+
+recent_grad_prop <- recent_grad %>% 
+  group_by(major_category) %>% 
+  mutate(fulltime = employed_fulltime/employ_total,
+         parttime = employed_parttime/employ_total,
+         unemploy = unemployed/employ_total) %>% 
+  select(major_category, fulltime, parttime, unemploy) %>% 
+  pivot_longer(-major_category,
+               names_to = "employment_type",
+               values_to = "proportion")
+
+recent_grad_prop %>% 
+  ggplot(aes(major_category, proportion)) +
+  geom_col(aes(fill = employment_type)) +
+  coord_flip() +
+  theme_minimal() +
+  scale_fill_brewer(name = "Employment Type", labels = c("Full-time", "Part-time", "Unemployed")) +
+  labs(y = "Proportion",
+       x = NULL) +
+  theme(legend.position = "bottom")
+# what is going on with the proportion grouping?
+```
+
+## Plot 3 - tbd
+```{r}
+
+```
+
+## Plot 4
+```{r}
+
+library(albersusa)
+
+us <- usa_sf() %>% 
+  rename(state = iso_3166_2)
+
+hate_crime_prop <- hate_crimes %>% 
+  rename(post_election = hate_crimes_per_100k_splc,
+         pre_election = avg_hatecrimes_per_100k_fbi/6,
+         state_full = state,
+         state = state_abbrev) %>% 
+  select(state, post_election, pre_election) %>%
+  pivot_longer(-state,
+               names_to = "time_period",
+               values_to = "crime_rate")
+
+hate_crime_pre <- hate_crime_prop %>% 
+  filter(time_period == "pre_election")
+
+hate_crime_post <- hate_crime_prop %>% 
+  filter(time_period == "post_election")
+
+crime_map_before <- left_join(us, hate_crime_pre)
+
+crime_map_after <- left_join(us, hate_crime_post)
+
+#Before
+ggplot(us) +
+  geom_sf(aes(fill = crime_rate), color = "white", data = crime_map_before) +
+  scale_fill_viridis_c(name = "Hate Incidents per 100,000 residents", option = "D") +
+  theme_void() +
+  theme(legend.position = "bottom")
+
+#After
+ggplot(us) +
+  geom_sf(aes(fill = crime_rate), color = "white", data = crime_map_after) +
+  scale_fill_viridis_c(name = "Hate Incidents per 100,000 residents", option = "D") +
+  theme_void() +
+  theme(legend.position = "bottom")
+```
+
