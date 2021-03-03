@@ -157,7 +157,7 @@ recent_grad_sex %>%
   filter(major_category != "Agriculture & Natural Resources") %>% 
   ggplot(aes(reorder(major_category, -share), share, fill = sex)) +
   geom_col(aes(fill = sex)) +
-  geom_text(aes(label=scales::percent(share, 1)), size = 2, position = position_stack(vjust = .95)) + # since the 2 bars add together to 100% i stacked them
+  geom_text(aes(label=scales::percent(share, 1)), size = 2, position = position_stack(vjust = .95)) + # still not perfect but i did try to fix the geom_text here
   coord_flip() +
   theme_minimal() +
   scale_fill_brewer(name = "Sex (Reported)", labels = c("Men", "Women"), palette = "Accent") +
