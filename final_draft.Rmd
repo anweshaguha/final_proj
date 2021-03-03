@@ -40,6 +40,35 @@ recent_grad %>%
        title = "Representation and Pay for Women Across Majors")
 
 # maybe include vertical line for average share of women, horizontal line for average income
+
+```
+
+### Plot 1 potential edits
+```{r}
+#Adding line breaks in the major categories so that the whole name appears in the graphs
+
+recent_grad_pr <- recent_grad %>% 
+  mutate(majcats = plyr::revalue(major_category,
+                           c("Agriculture & Natural Resources" = "Agriculture & \n Natural Resources",
+                             "Communications & Journalism" = "Communications & \n Journalism",
+                             "Industrial Arts & Consumer Services" = "Industrial Arts & \n Consumer Services")))
+
+recent_grad_pr %>% 
+  ggplot(aes(sharewomen, median)) +
+  geom_point(aes(color = majcats), alpha = 0.7) +
+  facet_wrap(~majcats) +
+  theme_minimal() +
+  scale_color_viridis_d(option = "E") +
+  theme(legend.position = "none",
+        strip.text = element_text(size = 9), #made facet wrap label smaller so fits
+        axis.text.x = element_text(size = 6), #fits, but now I feel like it's too small :/
+        axis.text.y = element_text(size = 6)) + 
+  scale_x_continuous(labels = scales::percent) +
+  scale_y_continuous(labels = scales::dollar) +
+  labs(x = "Share of Women",
+       y = "Median Income",
+       title = "Representation and Pay for Women Across Categories of Majors")
+
 ```
 
 ## Plot 2
@@ -59,7 +88,7 @@ recent_grad_prop <- recent_grad %>%
 recent_grad_prop %>% 
   ggplot(aes(major_category, proportion)) +
   geom_col(aes(fill = employment_type)) +
-#  geom_text(aes(label=scales::percent(proportion, 1)), size = 2, hjust = 2, color = "gray30") +
+#  geom_text(aes(label=scales::percent(proportion, 1)), size = 2, hjust = 1, color = "gray30") +
   coord_flip() +
   theme_minimal() +
   scale_fill_brewer(name = "Employment Type", labels = c("Full-time", "Part-time", "Unemployed")) +
@@ -70,6 +99,24 @@ recent_grad_prop %>%
   scale_y_continuous(expand = c(0,0))
 
 # Feedback on whether geom_text() adds anything here? I felt it looked a bit too cluttered
+```
+
+###Plot 2 potential edits
+
+```{r}
+recent_grad_prop %>% 
+  ggplot(aes(major_category, proportion, fill = employment_type)) +
+  geom_col(aes(fill = employment_type)) +
+  geom_text(aes(label=scales::percent(proportion, 1)), size = 3, position = position_stack(vjust = .95), color = "gray20") + # I still wish the geom_text was like a little more refined looking but I think I 
+  coord_flip() +
+  theme_minimal() +
+  scale_fill_brewer(name = "Employment Type", labels = c("Full-time", "Part-time", "Unemployed")) +
+  labs(y = "Percent",
+       x = NULL,
+       title = "Employment Distribution for Each Graduated Major") +
+  theme(legend.position = "top") + # just a personal preference b/c I feel like this way eyes go first to title then to legend and then to plot
+  scale_y_continuous(labels = scales::percent) # feels like this might be easier to read
+
 ```
 
 ## Plot 3
@@ -100,6 +147,25 @@ recent_grad_sex %>%
   scale_y_continuous(expand = c(0,0))
 
 # I would be interested to also include the median salary for each field, but am stuck on how to make that work well visually. Also can't get geom_text() to work here; feedback would be great!
+
+```
+
+### Plot 3 potential edits
+
+```{r}
+recent_grad_sex %>% 
+  filter(major_category != "Agriculture & Natural Resources") %>% 
+  ggplot(aes(reorder(major_category, -share), share, fill = sex)) +
+  geom_col(aes(fill = sex)) +
+  geom_text(aes(label=scales::percent(share, 1)), size = 2, position = position_stack(vjust = .95)) + # still not perfect but i did try to fix the geom_text here
+  coord_flip() +
+  theme_minimal() +
+  scale_fill_brewer(name = "Sex (Reported)", labels = c("Men", "Women"), palette = "Accent") +
+  labs(y = "Percent",
+       x = NULL,
+       title = "Gender Distribution for Each Graduated Major") +
+  theme(legend.position = "top") +
+  scale_y_continuous(labels = scales::percent)
 
 ```
 
