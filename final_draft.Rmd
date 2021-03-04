@@ -42,6 +42,8 @@ recent_grad %>%
 # maybe include vertical line for average share of women, horizontal line for average income
 ```
 
+### Comment: The visualization is pretty straightforward to understand. One thing I would like to suggest is that add some text to explain why majors are colored differently because people will not know how those are color if they can't see you code. Also, it looks some labels on the x-axis are smashed together, and the title of individual plot is out of the view, but I don't know how to fix them. I also like your ideas about adding vertical and horizontal lines.
+
 ## Plot 2
 ```{r}
 recent_grad$employ_total <- recent_grad$employed_fulltime + recent_grad$employed_parttime + recent_grad$unemployed
@@ -71,6 +73,8 @@ recent_grad_prop %>%
 
 # Feedback on whether geom_text() adds anything here? I felt it looked a bit too cluttered
 ```
+
+### Comment: I really like this visualization. It is clear to see what you try to compare and the color combination is pleasing. The only nitpicking thing I would say is that may use text to label the percentage (the line you commented out) for each major and employment type within a major. If you feel it is too cluttered, I think at least adding label the percentage for the full-time employment for each major would be helpful, or place the labels at the end of each employment type for each major.
 
 ## Plot 3
 ```{r}
@@ -102,6 +106,8 @@ recent_grad_sex %>%
 # I would be interested to also include the median salary for each field, but am stuck on how to make that work well visually. Also can't get geom_text() to work here; feedback would be great!
 
 ```
+
+### Comment: I think if you want to include the median salary (by gender?  if I am understanding this correctly) for each field, maybe it is better to create two different plot objects in r and combine them with ggarrange to create one plot. Depending on what visualization you do with salary, I think it is better to make them look comparable. Howevever I currently don't know how to make plots for gender distribution and  salary look comparable.  
 
 ## Plot 4
 *This is an additional exploration with a different dataset. For my peer reviewer, you can ignore the plot below!*
