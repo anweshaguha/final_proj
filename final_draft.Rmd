@@ -20,6 +20,7 @@ hate_crimes <- hate_crimes
 
 ```
 
+
 ## About the Data
 
 Data was taken from the publicly available *fivethirtyeightdata* housed on GitHub. Specifically, I used the grad-students and recent-grads data, which are used in the “Economic Guide to Picking a College Major” [article](https://fivethirtyeight.com/features/the-economic-guide-to-picking-a-college-major/). The data is originally from the 2010-2012 American Community Survey and generally discusses earnings, graduate student information, and labor force outcomes.
@@ -41,6 +42,34 @@ recent_grad %>%
 
 # maybe include vertical line for average share of women, horizontal line for average income
 ```
+
+
+
+
+```{r}
+#add x and y axis to each major
+recent_grad %>% 
+  ggplot(aes(sharewomen, median)) +
+  geom_point(aes(color = major_category), alpha = 0.7) +
+  facet_wrap(~major_category, scales = 'free') +
+  theme_minimal() +
+  theme(axis.line = element_line())+
+  scale_color_viridis_d(option = "E") +
+  theme(legend.position = "none") +
+   scale_x_continuous(labels = scales::percent)+
+  scale_y_continuous(labels = scales::dollar) +
+  labs(x = "Share of Women",
+       y = "Median Income",
+       title = "Representation and Pay for Women Across Majors")
+
+```
+
+
+```{r}
+#add the command as tidyverse did not run for me
+library(tidyr)
+```
+
 
 ## Plot 2
 ```{r}
@@ -72,6 +101,44 @@ recent_grad_prop %>%
 # Feedback on whether geom_text() adds anything here? I felt it looked a bit too cluttered
 ```
 
+
+
+```{r}
+#add position dodge and adjust the colors 
+
+recent_grad$employ_total <- recent_grad$employed_fulltime + recent_grad$employed_parttime + recent_grad$unemployed
+
+recent_grad_prop <- recent_grad %>% 
+  group_by(major_category) %>% 
+  summarize(fulltime = sum(employed_fulltime)/sum(employ_total),
+         parttime = sum(employed_parttime)/sum(employ_total),
+         unemploy = sum(unemployed)/sum(employ_total)) %>% 
+  select(major_category, fulltime, parttime, unemploy) %>% 
+  pivot_longer(-major_category,
+               names_to = "employment_type",
+               values_to = "proportion")
+
+recent_grad_prop %>% 
+  ggplot(aes(major_category, proportion)) +
+  geom_col(aes(fill = employment_type), position = "dodge") +
+#  geom_text(aes(label=scales::percent(proportion, 1)), size = 2, hjust = 2, color = "gray30") +
+  coord_flip() +
+  theme_minimal() +
+  scale_fill_manual(name = "Employment Type", labels = c("Full-time", "Part-time", "Unemployed"), values = c("#ffa634", "#34ffb8", "#34a9ff")) +
+  labs(y = "Proportion",
+       x = NULL,
+       title = "Employment Distribution for Each Graduated Major") +
+  theme(legend.position = "bottom") +
+  scale_y_continuous(expand = c(0,0))
+
+# Feedback on whether geom_text() adds anything here? I felt it looked a bit too cluttered
+
+```
+
+
+
+
+2. 
 ## Plot 3
 ```{r}
 recent_grad_sex <- recent_grad %>% 
@@ -102,6 +169,15 @@ recent_grad_sex %>%
 # I would be interested to also include the median salary for each field, but am stuck on how to make that work well visually. Also can't get geom_text() to work here; feedback would be great!
 
 ```
+
+
+```{r}
+#annotate exmaple to add medians
+yourgg + annotate("text", x = each_major, y = .8, label = "put median salary for each field")
+```
+
+
+
 
 ## Plot 4
 *This is an additional exploration with a different dataset. For my peer reviewer, you can ignore the plot below!*
