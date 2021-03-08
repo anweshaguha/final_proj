@@ -11,6 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(fivethirtyeight)
 library(fivethirtyeightdata)
+library(colorblindr)
 
 all_college <- college_all_ages
 grad <- college_grad_students
@@ -25,7 +26,7 @@ hate_crimes <- hate_crimes
 Data was taken from the publicly available *fivethirtyeightdata* housed on GitHub. Specifically, I used the grad-students and recent-grads data, which are used in the “Economic Guide to Picking a College Major” [article](https://fivethirtyeight.com/features/the-economic-guide-to-picking-a-college-major/). The data is originally from the 2010-2012 American Community Survey and generally discusses earnings, graduate student information, and labor force outcomes.
 
 ## Plot 1
-```{r}
+```{r initial}
 recent_grad %>% 
   ggplot(aes(sharewomen, median)) +
   geom_point(aes(color = major_category), alpha = 0.7) +
@@ -36,11 +37,33 @@ recent_grad %>%
   scale_x_continuous(labels = scales::percent) +
   scale_y_continuous(labels = scales::dollar) +
   labs(x = "Share of Women",
-       y = "Median Income",
+       y = "Median Income for each Major",
        title = "Representation and Pay for Women Across Majors")
 
 # maybe include vertical line for average share of women, horizontal line for average income
 ```
+
+```{r draft two}
+recent_grad %>% 
+  ggplot(aes(sharewomen, median)) +
+  geom_point(aes(color = major_category), alpha = 0.7) +
+#  facet_wrap(~major_category) +
+  theme_minimal() +
+  scale_color_brewer(palette = "Paired") +
+  theme(legend.position = "top",
+        legend.title = element_blank()) +
+  scale_x_continuous(labels = scales::percent) +
+  scale_y_continuous(labels = scales::dollar) +
+  labs(x = "Share of Women",
+       y = "Median Income for each Major",
+       title = "Representation and Pay for Women Across Majors",
+       subtitle = "Graphs represent the median income for each Major by share of women, grouped by major category.")
+
+# next steps: grouping certain majors together or highlighting certain majors
+# use forcats::fct_collapse()
+```
+
+
 
 ## Plot 2
 ```{r}
@@ -72,6 +95,43 @@ recent_grad_prop %>%
 # Feedback on whether geom_text() adds anything here? I felt it looked a bit too cluttered
 ```
 
+```{r take two}
+recent_grad_prop %>% 
+  ggplot(aes(major_category, proportion, fill = employment_type)) +
+  geom_col(aes(fill = employment_type)) +
+  geom_text(aes(label=scales::percent(proportion, 1)), size = 3, position = position_stack(vjust = .8), color = "gray30") +
+  coord_flip() +
+  theme_minimal() +
+  scale_fill_brewer(name = "Employment Type", labels = c("Full-time", "Part-time", "Unemployed")) +
+  labs(y = "Percent",
+       x = NULL,
+       title = "Employment Distribution for Each Graduated Major") +
+  theme(legend.position = "bottom") +
+  scale_y_continuous(expand = c(0,0), labels = scales::percent)
+
+# Feedback on whether geom_text() adds anything here? I felt it looked a bit too cluttered
+```
+
+```{r take three}
+recent_grad_prop %>% 
+  ggplot(aes(major_category, proportion, fill = employment_type)) +
+  geom_col(aes(fill = employment_type)) +
+  geom_text(aes(label=scales::percent(proportion, 1)), size = 3, position = position_stack(vjust = .8), color = "gray30") +
+  coord_flip()  +
+  scale_y_continuous(expand = c(0,0), labels = scales::percent) +
+#  scale_x_discrete(breaks = NULL) +
+  theme_minimal() +
+  scale_fill_OkabeIto(name = "Employment Type", labels = c("Full-time", "Part-time", "Unemployed"),  alpha = .4) +
+  labs(y = "Percent",
+       x = NULL,
+       title = "Employment Distribution for Each Graduated Major") +
+  theme(legend.position = "bottom",
+        panel.grid.minor.x = element_blank())
+
+# Feedback on whether geom_text() adds anything here? I felt it looked a bit too cluttered
+```
+
+
 ## Plot 3
 ```{r}
 recent_grad_sex <- recent_grad %>% 
@@ -102,6 +162,29 @@ recent_grad_sex %>%
 # I would be interested to also include the median salary for each field, but am stuck on how to make that work well visually. Also can't get geom_text() to work here; feedback would be great!
 
 ```
+
+
+```{r take two}
+
+recent_grad_sex %>% 
+  filter(major_category != "Agriculture & Natural Resources") %>% 
+  ggplot(aes(reorder(major_category, -share), share)) +
+  geom_col(aes(fill = sex)) +
+  geom_text(aes(label=scales::percent(share, 1)), size = 2, hjust = 2, position = position_stack(vjust = .95)) +
+  facet_wrap(~sex) +
+  coord_flip() +
+  theme_minimal() +
+  scale_fill_brewer(name = "Sex (Reported)", labels = c("Men", "Women"), palette = "Accent") +
+  labs(y = "Percent",
+       x = NULL,
+       title = "Gender Distribution for Each Graduated Major") +
+  theme(legend.position = "bottom") +
+  scale_y_continuous(expand = c(0,0), labels = scales::percent)
+
+# I would be interested to also include the median salary for each field, but am stuck on how to make that work well visually. Also can't get geom_text() to work here; feedback would be great!
+
+```
+
 
 ## Plot 4
 *This is an additional exploration with a different dataset. For my peer reviewer, you can ignore the plot below!*
