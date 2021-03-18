@@ -37,9 +37,11 @@ This *flexdashboard* was created by Anwesha Guha.
   
 **About the Data**
 
-Data was taken from the publicly available *fivethirtyeightdata* housed on GitHub. Specifically, I used the recent-grads data, which are used in the “Economic Guide to Picking a College Major” [article](https://fivethirtyeight.com/features/the-economic-guide-to-picking-a-college-major/). 
+*The quality of light by which we scrutinize our lives has direct bearing upon the product which we live, and upon the changes which we hope to bring about through those lives.* -- Audre Lorde
 
-The data is originally from the 2010-2012 American Community Survey and generally discusses earnings, graduate student information, and labor force outcomes.
+With education being a central component in career opportunity and access, the investigation of the economics associated with graduation are worth investigating. In 2014, FiveThirtyEight published “Economic Guide to Picking a College Major” [article](https://fivethirtyeight.com/features/the-economic-guide-to-picking-a-college-major/) using the publicly available recent-grads dataset. It was taken from the American Community Survey 2010-2012 Public Use Microdata Series related to 173 college majors, broken down by graduation rates, income, gender, and general labor force information. The type of job graduates ended up with with corresponding employment and income information are included.
+
+This dashboard examines metrics specifically related to major, gender, and employment rates in an exploratory capacity. This exploration, like many others, hopes to shed light and push critical thinking as it relates to higher education and labor market systems and structures -- at least informally, in day-to-day settings. Contributions and critiques are welcome.
 
 **Visuals**
 
@@ -49,22 +51,6 @@ The data is originally from the 2010-2012 American Community Survey and generall
 
 3 - Gender Distribution by Major
 
-Background
-================================================================
-
-Row {data-width=1000}
----
-### Data
-
-*The quality of light by which we scrutinize our lives has direct bearing upon the product which we live, and upon the changes which we hope to bring about through those lives.* -- Audre Lorde
-
-With education being a central component in career opportunity and access, the investigation of the economics associated with graduation are worth investigating. FiveThirtyEight published data from American Community Survey 2010-2012 Public Use Microdata Series related to 173 college majors, broken down by graduation rates, income, gender, and general labor force information. The type of job graduates ended up with with corresponding employment and income information are included.
-
-This dashboard examines metrics specifically related to major, gender, and employment rates in an exploratory capacity. This exploration, like many others, hopes to shed light and push critical thinking as it relates to higher education and labor market systems and structures -- at least informally, in day-to-day settings. Contributions and critiques are welcome.
-
-Row {data-width=1000}
----
-### References
 
 
 Representation and Pay
@@ -167,15 +153,55 @@ Row {data-width=650}
 ---
 
 ### Final Plot
-```{r final plot 2, warning=FALSE, message=FALSE, fig.width=10}
-plot1 <- mtcars %>% 
-  ggplot(aes(wt, mpg, col=as_factor(cyl))) +
-  geom_point() +
-  facet_grid(~cyl)
+```{r final plot 2, warning=FALSE, message=FALSE, fig.width=8}
 
-plot1
+recent_grad$employ_total <- recent_grad$employed_fulltime + recent_grad$employed_parttime + recent_grad$unemployed
+
+recent_grad$major_collapsed <- fct_collapse(recent_grad$major_category,
+                                "Arts & Humanities" = c("Arts", "Interdisciplinary", "Communications & Journalism", "Humanities & Liberal Arts"),
+                                "Physical & Life Science" = c("Biology & Life Science", "Physical Sciences"),
+                                "Psychology & Social Science" = c("Social Science", "Psychology & Social Work"),
+                                "Industry, Public Service, & Law" = c("Industrial Arts & Consumer Services", "Law & Public Policy"))
+
+recent_grad_prop <- recent_grad %>% 
+  group_by(major_collapsed) %>% 
+  summarize(fulltime = sum(employed_fulltime)/sum(employ_total),
+         parttime = sum(employed_parttime)/sum(employ_total),
+         unemploy = sum(unemployed)/sum(employ_total)) %>% 
+  select(major_collapsed, fulltime, parttime, unemploy) %>% 
+  pivot_longer(-major_collapsed,
+               names_to = "employment_type",
+               values_to = "proportion")
+
+recent_grad_prop2 <- recent_grad_prop %>% 
+  mutate(major_collapsed = factor(major_collapsed, levels = c("Business",
+                                                              "Engineering",
+                                                              "Agriculture & Natural Resources",
+                                                              "Computers & Mathematics",
+                                                              "Education",
+                                                              "Industry, Public Service, & Law",
+                                                              "Health",
+                                                              "Psychology & Social Science",
+                                                              "Physical & Life Science",
+                                                              "Arts & Humanities")))
 
 
+recent_grad_prop2 %>% 
+  ggplot(aes(major_collapsed, proportion, fill = employment_type)) +
+  geom_col(aes(fill = employment_type)) +
+  geom_text(aes(label=scales::percent(proportion, 1)), size = 3, position = position_stack(vjust = .8), color = "gray30") +
+  coord_flip()  +
+  scale_y_continuous(expand = c(0,0), labels = scales::percent) +
+#  scale_x_discrete(breaks = NULL) +
+  theme_minimal() +
+  scale_fill_OkabeIto(name = "Employment Type", labels = c("Full-time", "Part-time", "Unemployed"),  alpha = .7, darken = -.3) +
+  labs(y = "Percent in each Employment Type",
+       x = NULL,
+       title = "Employment Distribution for Each Graduated Major") +
+  theme(legend.position = "bottom",
+        panel.grid.major.y = element_blank())
+
+?scale_fill_OkabeIto
 ```
 
 
@@ -183,7 +209,9 @@ Row {data-width=1000}
 ---
 ### What's the story?
 
-Here is what I did.
+For each major category in the dataset, the percentage of individuals who were employed full-time, part-time, or unemployed are shown in the graph above. Arts and humanities have the lowest full-time employment percentage at 63%, while business majors have the most employed full-time after graduation, at 78%. While unemployment hovers at 5-7% for all major categories, the level of employment differs major to major. 
+
+For the sake of consistency and brevity between visualizations, the 16 original major categories were combined and compressed in 10 categories more resembling those used by [CollegeBoard](https://bigfuture.collegeboard.org/majors-careers).
 
 
 Row {.tabset .tabset-fade data-width=350}
@@ -192,7 +220,6 @@ Row {.tabset .tabset-fade data-width=350}
 ### Draft 1
 
 ```{r}
-recent_grad$employ_total <- recent_grad$employed_fulltime + recent_grad$employed_parttime + recent_grad$unemployed
 
 recent_grad_prop <- recent_grad %>% 
   group_by(major_category) %>% 
@@ -237,31 +264,15 @@ recent_grad_prop %>%
 ```
 
 
-### Draft 3
-
-```{r}
-recent_grad_prop %>% 
-  ggplot(aes(major_category, proportion, fill = employment_type)) +
-  geom_col(aes(fill = employment_type)) +
-  geom_text(aes(label=scales::percent(proportion, 1)), size = 3, position = position_stack(vjust = .8), color = "gray30") +
-  coord_flip()  +
-  scale_y_continuous(expand = c(0,0), labels = scales::percent) +
-#  scale_x_discrete(breaks = NULL) +
-  theme_minimal() +
-  scale_fill_OkabeIto(name = "Employment Type", labels = c("Full-time", "Part-time", "Unemployed"),  alpha = .4) +
-  labs(y = "Percent",
-       x = NULL,
-       title = "Employment Distribution for Each Graduated Major") +
-  theme(legend.position = "bottom",
-        panel.grid.minor.x = element_blank())
-```
-
 Row {data-width=1000}
 ---
 ### Evolution of the Final product
 
-Here is what I did.
+I started off curious to understand the unemployment rates for each major, since some majors are often marketed as more or less employable than others. After calculating the rates for each employment type, I stacked the columns since the proportions add up to 1.
 
+To reduce cognitive load, the x-axis was changed to percentage and `geom_text` was used to add the percentages for each of the employment types. I was surprised to see the rates hover at 5-8% across the board; the range came rather from the level of employment. However, I thought the narrative could still be a bit clearer.
+
+The palette was changed to be colorblind-friendly, and the bars were then ordered by full-time employment rates, low to high. The percentages were kept and adjusted for readability, and the  collapsed major category variable was used for consistency.
 
 
 Gender Distribution by Major
@@ -271,15 +282,47 @@ Row {data-width=650}
 ---
 
 ### Final Plot
-```{r final plot 3, warning=FALSE, message=FALSE, fig.width=10}
-plot1 <- mtcars %>% 
-  ggplot(aes(wt, mpg, col=as_factor(cyl))) +
-  geom_point() +
-  facet_grid(~cyl)
+```{r final plot 3, warning=FALSE, message=FALSE, fig.width=8}
 
-plot1
+recent_grad_sex <- recent_grad %>% 
+  group_by(major_collapsed) %>% 
+  summarize(share_men = sum(men)/sum(total),
+            share_women = sum(women)/sum(total),
+            salary = mean(median),
+            unemploy_rate = mean(unemployment_rate)) %>% 
+  select(major_collapsed, share_men, share_women, salary, unemploy_rate) %>% 
+  pivot_longer(-c(major_collapsed, salary, unemploy_rate),
+               names_to = "sex",
+               values_to = "share")
 
-#renderPlotly(plot1)
+recent_grad_sex2 <- recent_grad_sex %>% 
+  mutate(major_collapsed = factor(major_collapsed, levels = c("Education",
+                                                              "Arts & Humanities",
+                                                              "Psychology & Social Science",
+                                                              "Health",
+                                                              "Physical & Life Science",
+                                                              "Industry, Public Service, & Law",
+                                                              "Computers & Mathematics",
+                                                              "Business",
+                                                              "Engineering",
+                                                              "Agriculture & Natural Resources")))
+
+recent_grad_sex2 %>% 
+  filter(major_collapsed != "Agriculture & Natural Resources") %>% 
+  ggplot(aes(reorder(major_collapsed, -share), share)) +
+  geom_col(aes(fill = sex)) +
+  geom_text(aes(label=scales::percent(share, 1)), size = 3, hjust = 1, position = position_stack(vjust = .95)) +
+  facet_wrap(~sex) +
+  coord_flip() +
+  theme_minimal() +
+  scale_fill_brewer(name = "Sex (Reported)", labels = c("Men", "Women"), palette = "Accent") +
+  labs(y = "Percent",
+       x = NULL,
+       title = "Gender Distribution for Each Graduated Major, Sorted by Income") +
+  theme(legend.position = "top",
+        strip.text.x = element_blank(),
+        panel.grid.major.y = element_blank()) +
+  scale_y_continuous(expand = c(0,0), labels = scales::percent)
 
 ```
 
@@ -288,7 +331,7 @@ Row {data-width=1000}
 ---
 ### What's the story?
 
-Here is what I did.
+This graph shows how the share of women compare for each major category, sorted by income. For example, the highest income major, engineering, is comprised of 76% men and 24% women, while the lowest income major, education, is comprised of 19% men and 81% women to the lowest income majors (gender was coded as binary in this data). For this plot, even though I went through more complicated iterations, I wanted to keep it purposefully simple, drawing straightforward attention to gender by major.
 
 
 Row {.tabset .tabset-fade data-width=350}
@@ -297,20 +340,10 @@ Row {.tabset .tabset-fade data-width=350}
 ### Draft 1
 
 ```{r}
-recent_grad_sex <- recent_grad %>% 
-  group_by(major_category) %>% 
-  summarize(share_men = sum(men)/sum(total),
-            share_women = sum(women)/sum(total),
-            salary = mean(median)) %>% 
-  select(major_category, share_men, share_women, salary) %>% 
-  pivot_longer(-c(major_category, salary),
-               names_to = "sex",
-               values_to = "share")
-
 
 recent_grad_sex %>% 
-  filter(major_category != "Agriculture & Natural Resources") %>% 
-  ggplot(aes(reorder(major_category, -share), share)) +
+  filter(major_collapsed != "Agriculture & Natural Resources") %>% 
+  ggplot(aes(reorder(major_collapsed, -share), share)) +
   geom_col(aes(fill = sex), position = "dodge") +
 #  geom_text(aes(label=scales::percent(share, 1)), size = 2, hjust = 2, position = position_dodge(0.9)) +
   coord_flip() +
@@ -328,8 +361,8 @@ recent_grad_sex %>%
 
 ```{r}
 recent_grad_sex %>% 
-  filter(major_category != "Agriculture & Natural Resources") %>% 
-  ggplot(aes(reorder(major_category, -share), share)) +
+  filter(major_collapsed != "Agriculture & Natural Resources") %>% 
+  ggplot(aes(reorder(major_collapsed, -share), share)) +
   geom_col(aes(fill = sex)) +
   geom_text(aes(label=scales::percent(share, 1)), size = 2, hjust = 2, position = position_stack(vjust = .95)) +
   facet_wrap(~sex) +
@@ -347,4 +380,8 @@ Row {data-width=1000}
 ---
 ### Evolution of the Final product
 
-Here is what I did.
+I wanted to look at the share of women for each major category more explicitly, since each of the majors were plotted on the scatterplot before. Each of these iterations shows the gender distribution for each major, starting with the bar graphs dodged. While I liked the bars lined next to each other, the alternating colors of the bars made it difficult to know which columns to compare. 
+
+Since I still wanted them to be side by side, `facet_wrap` placed them side by side and sharing a common y-axis, so the column sizes would still be easy to compare. To reduce cognitive load, the percentages for each major category were included on each column.
+
+The last version of the visual focused on making it as simplistic as possible, continuing to reduce cognitive load and avoid visual artifacts, while adding the additional layer of median income. 
