@@ -8,7 +8,6 @@ output:
     social: menu
     theme: cerulean
     source_code: https://github.com/anweshaguha/final_proj
-runtime: shiny
 ---
 
 ```{r setup, include=FALSE}
@@ -176,7 +175,6 @@ plot1 <- mtcars %>%
 
 plot1
 
-renderPlotly(plot1)
 
 ```
 
@@ -281,7 +279,7 @@ plot1 <- mtcars %>%
 
 plot1
 
-renderPlotly(plot1)
+#renderPlotly(plot1)
 
 ```
 
