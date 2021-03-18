@@ -1,12 +1,13 @@
 ---
-title: "Demo Dash"
+title: "The Economics of Graduating"
 output: 
   flexdashboard::flex_dashboard:
-    orientation: columns
-    vertical_layout: fill
+    orientation: rows
+    vertical_layout: scroll
     horizontal_layout: fill
     social: menu
-    theme: united
+    theme: cerulean
+    source_code: https://github.com/anweshaguha/final_proj
 runtime: shiny
 ---
 
@@ -15,29 +16,159 @@ library(flexdashboard)
 library(tidyverse)
 library(plotly)
 library(shiny)
+library(fivethirtyeight)
+library(fivethirtyeightdata)
+library(colorblindr)
+
+all_college <- college_all_ages
+grad <- college_grad_students
+recent_grad <- college_recent_grads
 ```
 
-Overview
+
+
+Sidebar {.sidebar}
 ========
+ 
+**EDLD 652 Final Project**
 
-Sidebar Title {.sidebar}
-------------------------
+Gender, College Major, and Employment: The Economics of Graduating
+
+This *flexdashboard* was created by Anwesha Guha.
+  
+**About the Data**
+
+Data was taken from the publicly available *fivethirtyeightdata* housed on GitHub. Specifically, I used the recent-grads data, which are used in the “Economic Guide to Picking a College Major” [article](https://fivethirtyeight.com/features/the-economic-guide-to-picking-a-college-major/). 
+
+The data is originally from the 2010-2012 American Community Survey and generally discusses earnings, graduate student information, and labor force outcomes.
+
+**Visuals**
+
+1 - Representation and Pay
+
+2 - Employment by Major
+
+3 - Gender Distribution by Major
+
+Background
+================================================================
+
+Row {data-width=1000}
+---
+### Data
+
+*The quality of light by which we scrutinize our lives has direct bearing upon the product which we live, and upon the changes which we hope to bring about through those lives.* -- Audre Lorde
+
+With education being a central component in career opportunity and access, the investigation of the economics associated with graduation are worth investigating. FiveThirtyEight published data from American Community Survey 2010-2012 Public Use Microdata Series related to 173 college majors, broken down by graduation rates, income, gender, and general labor force information. The type of job graduates ended up with with corresponding employment and income information are included.
+
+This dashboard examines metrics specifically related to major, gender, and employment rates in an exploratory capacity. This exploration, like many others, hopes to shed light and push critical thinking as it relates to higher education and labor market systems and structures -- at least informally, in day-to-day settings. Contributions and critiques are welcome.
+
+Row {data-width=1000}
+---
+### References
 
 
+Representation and Pay
+=================================================================
+
+Row {data-width=650}
+---
+
+### Final Plot
+```{r final plot 1, warning=FALSE, message=FALSE, fig.width=10}
+
+recent_grad$major_collapsed <- fct_collapse(recent_grad$major_category,
+                                "Arts & Humanities" = c("Arts", "Interdisciplinary", "Communications & Journalism", "Humanities & Liberal Arts"),
+                                "Physical & Life Science" = c("Biology & Life Science", "Physical Sciences"),
+                                "Psychology & Social Science" = c("Social Science", "Psychology & Social Work"),
+                                "Industry, Public Service, & Law" = c("Industrial Arts & Consumer Services", "Law & Public Policy"))
+
+recent_grad %>% 
+  ggplot(aes(sharewomen, median)) +
+  geom_point(aes(color = major_collapsed), alpha = 0.95, size = 1) +
+  geom_smooth(linetype = 0, alpha = 0.2, weight = 0.7) +
+#  scale_shape_manual(values = c(0:9)) +
+  theme_minimal() +
+  scale_color_brewer(palette = "Paired") +
+  theme(legend.position = "top",
+        legend.title = element_blank()) +
+  scale_x_continuous(labels = scales::percent) +
+  scale_y_continuous(labels = scales::dollar) +
+  labs(x = "Share of Women",
+       y = "Median Income for each Major",
+       title = "Representation and Pay for Women Across Majors") +
+  annotate("label", x = .7, y = 90000, label = "Petroleum engineers claim the highest \nmedian income of $110,000 while being comprised \nof only 12% women. In contrast, early childhood \neducation is 97% women and makes a median \nsalary of $28,000", size = 2.5)
+
+```
 
 
-Final
-======================
+Row {data-width=1000}
+---
+### What's the story?
 
+The graph above represents the median income for each major by share of women, grouped by major category. With the original dataset dividing majors into 16 categories, certain categories were combined and compressed in 10 categories more resembling those used by [CollegeBoard](https://bigfuture.collegeboard.org/majors-careers). The 173 majors were maintained and plotted, grouped by color by the major categories. Median income for each major is shown on the y-axis, and the confidence interval shows a roughly negative linear relationship  Additionally, the share of women variable was calculated using the number of women and total number of individuals in each major category (note: this dataset coded gender as a binary).
 
-Column {data-width=550}
------------------------------------------------------------------------
+The confidence interval added to the graph above shows a roughly negative and linear relationship between the share of women in a particular major and what that major ends up making (median income). For example, petroleum engineers claim the highest median income of \$110,000 while being comprised of only 12% women. In contrast early childhood education is 97% women and makes a median salary of \$28,000.
 
-Check out this plot I made.
+Row {.tabset .tabset-fade data-width=350}
+---
 
-### Chart A
+### Draft 1
 
 ```{r}
+recent_grad %>% 
+  ggplot(aes(sharewomen, median)) +
+  geom_point(aes(color = major_category), alpha = 0.7) +
+  facet_wrap(~major_category) +
+  theme_minimal() +
+  scale_color_viridis_d(option = "E") +
+  theme(legend.position = "none") +
+  scale_x_continuous(labels = scales::percent) +
+  scale_y_continuous(labels = scales::dollar) +
+  labs(x = "Share of Women",
+       y = "Median Income for each Major",
+       title = "Representation and Pay for Women Across Majors")
+```
+
+
+### Draft 2
+
+```{r}
+recent_grad %>% 
+  ggplot(aes(sharewomen, median)) +
+  geom_point(aes(color = major_category), alpha = 0.7) +
+#  facet_wrap(~major_category) +
+  theme_minimal() +
+  scale_color_brewer(palette = "Paired") +
+  theme(legend.position = "right",
+        legend.title = element_blank()) +
+  scale_x_continuous(labels = scales::percent) +
+  scale_y_continuous(labels = scales::dollar) +
+  labs(x = "Share of Women",
+       y = "Median Income for each Major",
+       title = "Representation and Pay for Women Across Majors",
+       subtitle = "Graphs represent the median income for each Major by share of women, grouped by major category.")
+```
+
+Row {data-width=1000}
+---
+### Evolution of the Final product
+
+I started this visual interested in examining what the share of women are for the majors included in the dataset. I started by faceting by major category, but this visual made it difficult to compare across groups or identify any larger-scale trends. Also, I wanted to add color, but coloring by the major category potentially made the visual misleading.
+
+From there, I wondered how the majors would look together on the same graph, grouped by the major category. With there being 16 unique categories in the dataset originally, there were too many distinct variables to graph in a way that is receptive to the viewer (there simply were not 16 distinct values to encode). However, I did feel that this second iteration got me closer to the graph I wanted to eventually produce, as I could see what was potentially a moderate negative relationship between share of women and median income when grouped by major. 
+
+Using `fct_collapse`, major categories were redone, with help from CollegeBoard guidelines, and `geom_smooth` was added to explore the the relationship between x and y. Since I still wanted the focus of the graph to be each of the majors/major groups rather than the strict line, I removed the estimated line and kept the confidence interval as more of a background and guide to the relationship seen by eye. I finally used `geom_label` to clarify the interpretation of the graph by providing some examples. 
+
+
+Employment by Major
+=================================================================
+
+Row {data-width=650}
+---
+
+### Final Plot
+```{r final plot 2, warning=FALSE, message=FALSE, fig.width=10}
 plot1 <- mtcars %>% 
   ggplot(aes(wt, mpg, col=as_factor(cyl))) +
   geom_point() +
@@ -46,76 +177,176 @@ plot1 <- mtcars %>%
 plot1
 
 renderPlotly(plot1)
+
 ```
 
-Column {data-width=450}
------------------------------------------------------------------------
 
-### Chart B
+Row {data-width=1000}
+---
+### What's the story?
+
+Here is what I did.
+
+
+Row {.tabset .tabset-fade data-width=350}
+---
+
+### Draft 1
 
 ```{r}
+recent_grad$employ_total <- recent_grad$employed_fulltime + recent_grad$employed_parttime + recent_grad$unemployed
 
+recent_grad_prop <- recent_grad %>% 
+  group_by(major_category) %>% 
+  summarize(fulltime = sum(employed_fulltime)/sum(employ_total),
+         parttime = sum(employed_parttime)/sum(employ_total),
+         unemploy = sum(unemployed)/sum(employ_total)) %>% 
+  select(major_category, fulltime, parttime, unemploy) %>% 
+  pivot_longer(-major_category,
+               names_to = "employment_type",
+               values_to = "proportion")
+
+recent_grad_prop %>% 
+  ggplot(aes(major_category, proportion)) +
+  geom_col(aes(fill = employment_type)) +
+#  geom_text(aes(label=scales::percent(proportion, 1)), size = 2, hjust = 2, color = "gray30") +
+  coord_flip() +
+  theme_minimal() +
+  scale_fill_brewer(name = "Employment Type", labels = c("Full-time", "Part-time", "Unemployed")) +
+  labs(y = "Proportion",
+       x = NULL,
+       title = "Employment Distribution for Each Graduated Major") +
+  theme(legend.position = "bottom") +
+  scale_y_continuous(expand = c(0,0))
 ```
 
-### Chart C
+
+### Draft 2
 
 ```{r}
-
+recent_grad_prop %>% 
+  ggplot(aes(major_category, proportion, fill = employment_type)) +
+  geom_col(aes(fill = employment_type)) +
+  geom_text(aes(label=scales::percent(proportion, 1)), size = 3, position = position_stack(vjust = .8), color = "gray30") +
+  coord_flip() +
+  theme_minimal() +
+  scale_fill_brewer(name = "Employment Type", labels = c("Full-time", "Part-time", "Unemployed")) +
+  labs(y = "Percent",
+       x = NULL,
+       title = "Employment Distribution for Each Graduated Major") +
+  theme(legend.position = "bottom") +
+  scale_y_continuous(expand = c(0,0), labels = scales::percent)
 ```
 
-Draft 1
-======================
 
-Column {data-width=550}
------------------------------------------------------------------------
-
-### Chart A
+### Draft 3
 
 ```{r}
+recent_grad_prop %>% 
+  ggplot(aes(major_category, proportion, fill = employment_type)) +
+  geom_col(aes(fill = employment_type)) +
+  geom_text(aes(label=scales::percent(proportion, 1)), size = 3, position = position_stack(vjust = .8), color = "gray30") +
+  coord_flip()  +
+  scale_y_continuous(expand = c(0,0), labels = scales::percent) +
+#  scale_x_discrete(breaks = NULL) +
+  theme_minimal() +
+  scale_fill_OkabeIto(name = "Employment Type", labels = c("Full-time", "Part-time", "Unemployed"),  alpha = .4) +
+  labs(y = "Percent",
+       x = NULL,
+       title = "Employment Distribution for Each Graduated Major") +
+  theme(legend.position = "bottom",
+        panel.grid.minor.x = element_blank())
+```
+
+Row {data-width=1000}
+---
+### Evolution of the Final product
+
+Here is what I did.
+
+
+
+Gender Distribution by Major
+=================================================================
+
+Row {data-width=650}
+---
+
+### Final Plot
+```{r final plot 3, warning=FALSE, message=FALSE, fig.width=10}
+plot1 <- mtcars %>% 
+  ggplot(aes(wt, mpg, col=as_factor(cyl))) +
+  geom_point() +
+  facet_grid(~cyl)
+
+plot1
+
+renderPlotly(plot1)
 
 ```
 
-Column {data-width=450}
------------------------------------------------------------------------
 
-### Chart B
+Row {data-width=1000}
+---
+### What's the story?
+
+Here is what I did.
+
+
+Row {.tabset .tabset-fade data-width=350}
+---
+
+### Draft 1
 
 ```{r}
+recent_grad_sex <- recent_grad %>% 
+  group_by(major_category) %>% 
+  summarize(share_men = sum(men)/sum(total),
+            share_women = sum(women)/sum(total),
+            salary = mean(median)) %>% 
+  select(major_category, share_men, share_women, salary) %>% 
+  pivot_longer(-c(major_category, salary),
+               names_to = "sex",
+               values_to = "share")
 
+
+recent_grad_sex %>% 
+  filter(major_category != "Agriculture & Natural Resources") %>% 
+  ggplot(aes(reorder(major_category, -share), share)) +
+  geom_col(aes(fill = sex), position = "dodge") +
+#  geom_text(aes(label=scales::percent(share, 1)), size = 2, hjust = 2, position = position_dodge(0.9)) +
+  coord_flip() +
+  theme_minimal() +
+  scale_fill_brewer(name = "Sex (Reported)", labels = c("Men", "Women"), palette = "Accent") +
+  labs(y = "Share",
+       x = NULL,
+       title = "Gender Distribution for Each Graduated Major") +
+  theme(legend.position = "bottom") +
+  scale_y_continuous(expand = c(0,0))
 ```
 
-### Chart C
+
+### Draft 2
 
 ```{r}
-
+recent_grad_sex %>% 
+  filter(major_category != "Agriculture & Natural Resources") %>% 
+  ggplot(aes(reorder(major_category, -share), share)) +
+  geom_col(aes(fill = sex)) +
+  geom_text(aes(label=scales::percent(share, 1)), size = 2, hjust = 2, position = position_stack(vjust = .95)) +
+  facet_wrap(~sex) +
+  coord_flip() +
+  theme_minimal() +
+  scale_fill_brewer(name = "Sex (Reported)", labels = c("Men", "Women"), palette = "Accent") +
+  labs(y = "Percent",
+       x = NULL,
+       title = "Gender Distribution for Each Graduated Major") +
+  theme(legend.position = "bottom") +
+  scale_y_continuous(expand = c(0,0), labels = scales::percent)
 ```
 
+Row {data-width=1000}
+---
+### Evolution of the Final product
 
-Draft 2
-======================
-
-Column {data-width=550}
------------------------------------------------------------------------
-
-### Chart A
-
-```{r}
-
-```
-
-- reactable for interactive table
-
-Column {data-width=450}
------------------------------------------------------------------------
-
-### Chart B
-
-```{r}
-
-```
-
-### Chart C
-
-```{r}
-
-```
+Here is what I did.
